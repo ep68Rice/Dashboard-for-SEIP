@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -25,10 +26,8 @@ def parse(filename):
 # --- Streamlit App --- #
 st.title('Amazon Watches Review Analysis')
 
-st.header('1. Data Loading and Preprocessing')
-
 @st.cache_data # Cache data loading for performance
-def load_data(filename):
+def load_and_preprocess_data(filename):
     parsed_data = list(parse(filename))
     df = pd.DataFrame(parsed_data)
 
@@ -50,19 +49,11 @@ def load_data(filename):
     return df.dropna(subset=['review/score', 'review/time'])
 
 with st.spinner('Loading and preprocessing data...'):
-    df_app = load_data('Watches.txt.gz')
-st.success('Data loaded and preprocessed!')
+    df_app = load_and_preprocess_data('Watches.txt.gz')
 
-st.subheader('Raw Data Sample (First 5 Rows)')
-st.dataframe(df_app.head())
+# --- Display Charts --- #
 
-st.subheader('DataFrame Information')
-st.write(f"Shape of DataFrame: {df_app.shape}")
-st.write(df_app.info(verbose=True, buf=io.StringIO())) # Capture info output
-
-
-st.header('2. Review Score Analysis Over Time')
-st.subheader('Average Review Score by Year')
+st.header('Review Score Analysis Over Time')
 
 average_scores_by_year = df_app.groupby('review_year')['review/score'].mean().reset_index()
 fig_time, ax_time = plt.subplots(figsize=(10, 6))
@@ -75,7 +66,7 @@ ax_time.grid(axis='y', linestyle='--', alpha=0.7)
 st.pyplot(fig_time)
 
 
-st.header('3. Review Content Analysis')
+st.header('Review Content Analysis')
 st.subheader('Distribution of Review Summary and Text Lengths')
 
 fig_lengths, axes_lengths = plt.subplots(1, 2, figsize=(14, 6))
@@ -102,8 +93,7 @@ ax_score.set_xticks([1, 2, 3, 4, 5])
 st.pyplot(fig_score)
 
 
-st.header('4. Product and User Participation')
-
+st.header('Product and User Participation')
 st.subheader('Distribution of Product IDs')
 product_counts = df_app['product/productId'].value_counts()
 top_n = 20 # Can be adjusted
@@ -138,4 +128,3 @@ ax_users.pie(plot_data_users, labels=plot_data_users.index, autopct='%1.1f%%', s
 ax_users.set_title(f'Distribution of User Participation (Top {top_n_users} and Others)')
 ax_users.axis('equal')
 st.pyplot(fig_users)
-
